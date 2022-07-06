@@ -37,7 +37,7 @@ orderLogger.setLevel(logging.WARNING)
 #define file handler and set formatter
 logFilePath = "./logs"
 logFilePersist = "./logs/persistant"
-logFileName = logFilePath + '/' + idx + 'short.log'
+logFileName = logFilePath + '/' + idx + 'long.log'
 if(not os.path.exists(logFilePath)):
     os.makedirs(logFilePath)
 if(not os.path.exists(logFilePersist)):
@@ -158,7 +158,7 @@ def getHistoricalAPI(token,interval= 'FIVE_MINUTE'):
         print("Historic Api failed: {}".format(e.message))
 
 
-def placeShortOrder(symbol,ATMStrike):
+def placeLongOrder(symbol,ATMStrike):
 
     str_next_thursday_expiry, str_month_last_thu_expiry, wkly_expiry_dt, wkly_expiry_month, monthly_expiry_dt, monthly_expiry_month = nextThu_and_lastThu_expiry_date()
     #print("================================================================================")
@@ -175,24 +175,24 @@ def placeShortOrder(symbol,ATMStrike):
     marginBuyStrike = ATMStrike + marginDiff
 
     expiry_day = date(2022, wkly_mon, marginBuyWkly_dt)
-    ce_tokeninfo = getTokenInfo(symbol, 'NFO', 'OPTIDX', marginBuyStrike, 'PE', expiry_day)
-    print(ce_tokeninfo)
-    ce_strike_token = ce_tokeninfo.iloc[0]['token']
-    ce_strike_symbol = ce_tokeninfo.iloc[0]['symbol']
-    ltp = angelObject.ltpData("NFO",ce_strike_symbol,ce_strike_token)['data']['ltp']
-    print(f"{ce_strike_symbol} Price is: {ltp}")
-    buy_order(ce_strike_symbol,symbol,qty)
+    pe_tokeninfo = getTokenInfo(symbol, 'NFO', 'OPTIDX', marginBuyStrike, 'PE', expiry_day)
+    print(pe_tokeninfo)
+    pe_strike_token = pe_tokeninfo.iloc[0]['token']
+    pe_strike_symbol = pe_tokeninfo.iloc[0]['symbol']
+    ltp = angelObject.ltpData("NFO",pe_strike_symbol,pe_strike_token)['data']['ltp']
+    print(f"{pe_strike_symbol} Price is: {ltp}")
+    buy_order(pe_strike_symbol,symbol,qty)
 
     expiry_day = date(2022, wkly_mon, optSellWkly_dt)
-    ce_tokeninfo = getTokenInfo(symbol, 'NFO', 'OPTIDX', optSellStrike, 'PE', expiry_day)
-    print(ce_tokeninfo)
-    ce_strike_symbol = ce_tokeninfo.iloc[0]['token']
-    print(ce_strike_symbol)
-    ce_strike_token = ce_tokeninfo.iloc[0]['token']
-    ce_strike_symbol = ce_tokeninfo.iloc[0]['symbol']
-    ltp = angelObject.ltpData("NFO", ce_strike_symbol, ce_strike_token)['data']['ltp']
-    print(f"{ce_strike_symbol} Price is: {ltp}")
-    sell_order(ce_strike_symbol,symbol,qty)
+    pe_tokeninfo = getTokenInfo(symbol, 'NFO', 'OPTIDX', optSellStrike, 'PE', expiry_day)
+    print(pe_tokeninfo)
+    pe_strike_symbol = pe_tokeninfo.iloc[0]['token']
+    print(pe_strike_symbol)
+    pe_strike_token = pe_tokeninfo.iloc[0]['token']
+    pe_strike_symbol = pe_tokeninfo.iloc[0]['symbol']
+    ltp = angelObject.ltpData("NFO", pe_strike_symbol, pe_strike_token)['data']['ltp']
+    print(f"{pe_strike_symbol} Price is: {ltp}")
+    sell_order(pe_strike_symbol,symbol,qty)
 
 def buy_order(token,symbol,qty):
     try:
@@ -290,9 +290,9 @@ def exitPos(entryPrice):
             logger.info("postion Partail Exit")
             orderLogger.warning(f"position Partial Exit")
             try:
-                # shortOrder = placeShortOrder(symbol,ATMStrike)
-                # print(shortOrder)
-                logger.info(shortOrder)
+                longOrder = placeLongOrder(symbol,ATMStrike)
+                print(longOrder)
+                logger.info(longOrder)
                 profit = (round(exitprice, 2) - round(entryprice, 2) * (qty_2))
                 now = datetime.now()
                 logger.warning(
@@ -315,9 +315,9 @@ def exitPos(entryPrice):
                     # do nothing
                     exitQty = qty
                     logger.info(f"Exiting full quantity")
-                shortOrder = placeShortOrder(symbol,ATMStrike)
-                print(shortOrder)
-                logger.info(shortOrder)
+                longOrder = placeLongOrder(symbol,ATMStrike)
+                print(longOrder)
+                logger.info(longOrder)
                 profit = (round(exitprice, 2) - round(entryprice, 2) * (exitQty))
                 now = datetime.now()
                 logger.warning(
@@ -419,9 +419,9 @@ def main():
         time.sleep(30)
         if ((macdDiff_15min > hist) and (diff5min > -stoploss) and (rsi_15min < 60)):
             try:
-                # shortOrder = placeShortOrder(symbol,ATMStrike)
-                # print(shortOrder)
-                logger.info(shortOrder)
+                longOrder = placeLongOrder(symbol,ATMStrike)
+                print(longOrder)
+                logger.info(longOrder)
                 now = datetime.now()
                 logger.warning(f"Long order executed at closeprice: {str(close_15min)} at {str(now)}")
                 orderLogger.warning(f"Long order executed at closeprice: {str(close_15min)} at {str(now)}")
