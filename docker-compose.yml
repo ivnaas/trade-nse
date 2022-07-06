@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  BNFSHORT:
+    image: indexshort:1.0
+    volumes:
+      - bnflog_data_short:/opt/apps/logs
+    restart: always
+    environment:
+      api_key:
+      username:
+      password:
+      idx: BNF
+      lot_size: 2
+      hist: -10
+      stoploss: 50
+      alice_user_id: 
+      alice_password:
+      alice_two_FA:
+      alice_api_secret:
+      alice_app_id:
+  BNFLONG:
+    image: indexlong:1.0
+    volumes:
+      - bnflog_data_long:/opt/apps/logs
+    restart: always
+    environment:
+      api_key:
+      username:
+      password:
+      idx: BNF
+      lot_size: 2
+      hist: 10
+      stoploss: -50
+      alice_user_id:
+      alice_password:
+      alice_two_FA: 1983
+      alice_api_secret:
+      alice_app_id:
+  NFSHORT:
+    image: indexshort:1.0
+    volumes:
+      - nflog_data_short:/opt/apps/logs
+    restart: always
+    environment:
+      api_key:
+      username:
+      password:
+      idx: NF
+      lot_size: 2
+      hist: -5
+      stoploss: 20
+      alice_user_id:
+      alice_password:
+      alice_two_FA:
+      alice_api_secret:
+      alice_app_id:
+  NFLONG:
+    image: indexlong:1.0
+    volumes:
+      - nflog_data_long:/opt/apps/logs
+    restart: always
+    environment:
+      api_key:
+      username:
+      password:
+      idx: NF
+      lot_size: 2
+      hist: 5
+      stoploss: -20
+      alice_user_id:
+      alice_password:
+      alice_two_FA:
+      alice_api_secret:
+      alice_app_id:
+volumes:
+  bnflog_data_short: {}
+  bnflog_data_long: {}
+  nflog_data_short: {}
+  nflog_data_long: {}
