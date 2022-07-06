@@ -21,7 +21,6 @@ stoploss = float(os.environ.get('stoploss')) #BNF-100, NF-50
 hist = float(os.environ.get('hist')) #BNF > 20, NF > 10
 TF_15MIN = "FIFTEEN_MINUTE"
 TF_5MIN = "FIVE_MINUTE"
-
 AL_15MIN = "15_MIN"
 AL_5MIN = "5_MIN"
 
@@ -30,7 +29,6 @@ AL_5MIN = "5_MIN"
 logger = logging.getLogger(__name__)
 #set log level
 logger.setLevel(logging.INFO)
-
 orderLogger = logging.getLogger('orderlog')
 orderLogger.setLevel(logging.WARNING)
 
@@ -118,7 +116,7 @@ def getTokenInfo (symbol,exch_seg ='NSE',instrumenttype='OPTIDX',strike_price = 
     #expiry_day = date(2022,7,28)
 
 def getIndexPrice(symbol):
-    #symbol = 'BANKNIFTY'
+    global angelObj
     tokenInfo = getTokenInfo(symbol)
     #print(tokenInfo)
     spot_token = tokenInfo.iloc[0]['token']
@@ -138,6 +136,7 @@ def getATMStrike(indexPrice):
     return ATMStrike
 
 def getHistoricalAPI(token,interval= 'FIVE_MINUTE'):
+    global angelObj
     to_date = datetime.now()
     from_date = to_date - timedelta(days=30)
     from_date_format = from_date.strftime("%Y-%m-%d %H:%M")
@@ -156,9 +155,8 @@ def getHistoricalAPI(token,interval= 'FIVE_MINUTE'):
     except Exception as e:
         print("Historic Api failed: {}".format(e.message))
 
-
 def placeLongOrder(symbol,ATMStrike):
-
+    global angelObj
     str_next_thursday_expiry, str_month_last_thu_expiry, wkly_expiry_dt, wkly_expiry_month, monthly_expiry_dt, monthly_expiry_month = nextThu_and_lastThu_expiry_date()
     #print("================================================================================")
     #print("Next Expiry Date = " + str_next_thursday_expiry)
@@ -169,10 +167,8 @@ def placeLongOrder(symbol,ATMStrike):
     wkly_dt = wkly_expiry_dt
     optSellWkly_dt = wkly_dt + 7
     optSellStrike = ATMStrike + ATMdiff
-
     marginBuyWkly_dt = wkly_dt
     marginBuyStrike = ATMStrike + marginDiff
-
     expiry_day = date(2022, wkly_mon, marginBuyWkly_dt)
     pe_tokeninfo = getTokenInfo(symbol, 'NFO', 'OPTIDX', marginBuyStrike, 'PE', expiry_day)
     print(pe_tokeninfo)
@@ -181,7 +177,6 @@ def placeLongOrder(symbol,ATMStrike):
     ltp = angelObj.ltpData("NFO",pe_strike_symbol,pe_strike_token)['data']['ltp']
     print(f"{pe_strike_symbol} Price is: {ltp}")
     buy_order(pe_strike_symbol,symbol,qty)
-
     expiry_day = date(2022, wkly_mon, optSellWkly_dt)
     pe_tokeninfo = getTokenInfo(symbol, 'NFO', 'OPTIDX', optSellStrike, 'PE', expiry_day)
     print(pe_tokeninfo)
@@ -194,6 +189,7 @@ def placeLongOrder(symbol,ATMStrike):
     sell_order(pe_strike_symbol,symbol,qty)
 
 def buy_order(token,symbol,qty):
+    global angelObj
     try:
         orderparams = {
             "variety": "NORMAL",
@@ -217,6 +213,7 @@ def buy_order(token,symbol,qty):
         print("Order placement failed: {}".format(e.message))
 
 def sell_order(token,symbol,qty):
+    global angelObj
     try:
         orderparams = {
             "variety": "NORMAL",
@@ -240,7 +237,8 @@ def sell_order(token,symbol,qty):
         print("Order placement failed: {}".format(e.message))
 
 def exitPos(entryPrice):
-
+    global angelObj
+    global aliceObj
     alice_df15min = getAliceSignal(aliceObj, aliceSymbol, AL_15MIN)
     # print(alice_df15min)
     latest_candle = alice_df15min.iloc[-1]
@@ -375,7 +373,7 @@ def main():
     angelObj = initAngel()
     aliceObj = initAlice()
 
-    position = angelObject.position()
+    position = angelObj.position()
     print(position)
 
     tokenInfo, indexPrice  = getIndexPrice(symbol)

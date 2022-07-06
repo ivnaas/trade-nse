@@ -17,7 +17,7 @@ alice_two_FA = os.environ.get('alice_two_FA')
 alice_api_secret = os.environ.get('alice_api_secret')
 alice_app_id = os.environ.get('alice_app_id')
 
-print(f'user_id = {alice_user_id}, password = {alice_password}, two_FA = {alice_two_FA}, api_secret = {alice_api_secret}, app_id = {alice_app_id}')
+#print(f'user_id = {alice_user_id}, password = {alice_password}, two_FA = {alice_two_FA}, api_secret = {alice_api_secret}, app_id = {alice_app_id}')
 
 def get_historical(instrument, from_datetime, to_datetime, interval, indices=False):
     params = {"token": instrument.token,

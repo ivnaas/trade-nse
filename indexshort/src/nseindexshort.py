@@ -49,17 +49,13 @@ order_handler = logging.FileHandler(orderFileName)
 formatter    = logging.Formatter('%(asctime)s : %(levelname)s : %(name)s : %(message)s')
 file_handler.setFormatter(formatter)
 order_handler.setFormatter(formatter)
-
 logger.addHandler(file_handler)
 orderLogger.addHandler(order_handler)
-
 orderLogger.warning(f'**Initalize Short Orderlog**')
 
 # Config
 angelObj = None
 aliceObj = None
-#def exitPos(entryPrice):
-    #to do
 
 def getTokens():
     url = 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json'
@@ -70,9 +66,7 @@ def getTokens():
     return(token_df)
 
 def nextThu_and_lastThu_expiry_date():
-
     todayte = datetime.today()
-
     cmon = todayte.month
     if_month_next = (todayte + relativedelta(weekday=TH(1))).month
     next_thursday_expiry = todayte + relativedelta(weekday=TH(1))
@@ -99,7 +93,6 @@ def nextThu_and_lastThu_expiry_date():
     #print("weekly expiry month", wkly_expiry_month)
     #print("weekly expiry date", monthly_expiry_dt)
     #print("weekly expiry month", monthly_expiry_month)
-
     str_month_last_thu_expiry = str(int(month_last_thu_expiry.strftime("%d"))) + month_last_thu_expiry.strftime(
         "%b").upper() + month_last_thu_expiry.strftime("%Y")
     str_next_thursday_expiry = str(int(next_thursday_expiry.strftime("%d"))) + next_thursday_expiry.strftime(
@@ -120,7 +113,7 @@ def getTokenInfo (symbol,exch_seg ='NSE',instrumenttype='OPTIDX',strike_price = 
     #expiry_day = date(2022,7,28)
 
 def getIndexPrice(symbol):
-    #symbol = 'BANKNIFTY'
+    global angelObj
     tokenInfo = getTokenInfo(symbol)
     #print(tokenInfo)
     spot_token = tokenInfo.iloc[0]['token']
@@ -140,6 +133,7 @@ def getATMStrike(indexPrice):
     return ATMStrike
 
 def getHistoricalAPI(token,interval= 'FIVE_MINUTE'):
+    global angelObj
     to_date = datetime.now()
     from_date = to_date - timedelta(days=30)
     from_date_format = from_date.strftime("%Y-%m-%d %H:%M")
@@ -158,9 +152,8 @@ def getHistoricalAPI(token,interval= 'FIVE_MINUTE'):
     except Exception as e:
         print("Historic Api failed: {}".format(e.message))
 
-
 def placeShortOrder(symbol,ATMStrike):
-
+    global angelObj
     str_next_thursday_expiry, str_month_last_thu_expiry, wkly_expiry_dt, wkly_expiry_month, monthly_expiry_dt, monthly_expiry_month = nextThu_and_lastThu_expiry_date()
     #print("================================================================================")
     #print("Next Expiry Date = " + str_next_thursday_expiry)
@@ -171,10 +164,8 @@ def placeShortOrder(symbol,ATMStrike):
     wkly_dt = wkly_expiry_dt
     optSellWkly_dt = wkly_dt + 7
     optSellStrike = ATMStrike + ATMdiff
-
     marginBuyWkly_dt = wkly_dt
     marginBuyStrike = ATMStrike + marginDiff
-
     expiry_day = date(2022, wkly_mon, marginBuyWkly_dt)
     ce_tokeninfo = getTokenInfo(symbol, 'NFO', 'OPTIDX', marginBuyStrike, 'CE', expiry_day)
     print(ce_tokeninfo)
@@ -183,7 +174,6 @@ def placeShortOrder(symbol,ATMStrike):
     ltp = angelObj.ltpData("NFO",ce_strike_symbol,ce_strike_token)['data']['ltp']
     print(f"{ce_strike_symbol} Price is: {ltp}")
     buy_order(ce_strike_symbol,symbol,qty)
-
     expiry_day = date(2022, wkly_mon, optSellWkly_dt)
     ce_tokeninfo = getTokenInfo(symbol, 'NFO', 'OPTIDX', optSellStrike, 'CE', expiry_day)
     print(ce_tokeninfo)
@@ -196,6 +186,7 @@ def placeShortOrder(symbol,ATMStrike):
     sell_order(ce_strike_symbol,symbol,qty)
 
 def buy_order(token,symbol,qty):
+    global angelObj
     try:
         orderparams = {
             "variety": "NORMAL",
@@ -219,6 +210,7 @@ def buy_order(token,symbol,qty):
         print("Order placement failed: {}".format(e.message))
 
 def sell_order(token,symbol,qty):
+    global angelObj
     try:
         orderparams = {
             "variety": "NORMAL",
@@ -242,36 +234,32 @@ def sell_order(token,symbol,qty):
         print("Order placement failed: {}".format(e.message))
 
 def exitPos(entryPrice):
-
+    global angelObj
+    global aliceObj
     alice_df15min = getAliceSignal(aliceObj,aliceSymbol, AL_15MIN)
     # print(alice_df15min)
     latest_candle = alice_df15min.iloc[-1]
-
     ema21_15min = latest_candle['ema21']
     macdVal_15min = latest_candle['macd']
     macdSignal_15min = latest_candle['macdsignal']
     macdDiff_15min = latest_candle['macddiff']
     rsi_15min = latest_candle['rsi']
     close_15min = latest_candle['Close']
-
     # print(f"EMA21 Value - {AL_15MIN} is {ema21_15min}")
     # print(f"MACD Value - {AL_15MIN} is {macdVal_15min}")
     # print(f"MACD Signal Value - {AL_15MIN} is {macdSignal_15min}")
     # print(f"MACD diff - {AL_15MIN} is {macdDiff_15min}")
     # print(f"RSI Value - {AL_15MIN} is {rsi_15min}")
     # print(f"Close Value - {AL_15MIN} is {close_15min}")
-
     alice_df5min = getAliceSignal(aliceObj,aliceSymbol, AL_5MIN)
     # print(alice_df5min)
     latest_candle = alice_df5min.iloc[-1]
-
     ema21_5min = latest_candle['ema21']
     macdVal_5min = latest_candle['macd']
     macdSignal_5min = latest_candle['macdsignal']
     macdDiff_5min = float(latest_candle['macddiff'])
     rsi_5min = latest_candle['rsi']
     close_5min = latest_candle['Close']
-
     # print(f"EMA21 Value - {AL_5MIN} is {ema21_5min}")
     # print(f"MACD Value - {AL_5MIN} is {macdVal_5min}")
     # print(f"MACD Signal Value - {AL_5MIN} is {macdSignal_5min}")
@@ -347,7 +335,6 @@ def initAngel():
     return angelObject
 
 def main():
-
     global username
     global password
     global api_key
@@ -443,7 +430,6 @@ def main():
             except Exception as e:
                 # error handling goes here
                 logger.error(e)
-
 
 if (__name__ == '__main__'):
     main()
