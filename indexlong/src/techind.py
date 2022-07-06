@@ -34,15 +34,15 @@ def get_historical(instrument, from_datetime, to_datetime, interval, indices=Fal
         records.append(record)
     return records
 
-retry(stop_max_attempt_number=3)
-def alicelogin():
+@retry(stop_max_attempt_number=3)
+def initAlice():
     try:
-        access_token = AliceBlue.login_and_get_access_token(username=user_id,
-                                                        password=password,
-                                                        twoFA=two_FA,
-                                                        api_secret=api_secret,
-                                                        app_id=app_id)
-        alice = AliceBlue(username=user_id, password=password,
+        access_token = AliceBlue.login_and_get_access_token(username=alice_user_id,
+                                                        password=alice_password,
+                                                        twoFA=alice_two_FA,
+                                                        api_secret=alice_api_secret,
+                                                        app_id=alice_app_id)
+        alice = AliceBlue(username=alice_user_id, password=alice_password,
                       access_token=access_token)
     except Exception as e:
         print(e)
@@ -56,9 +56,7 @@ def alicelogin():
     #instrument = alice.get_instrument_by_symbol("NSE", "Nifty Bank")
     return alice
 
-def getAliceSignal(aliceSymbol,tFrame):
-
-    aliceObj = alicelogin()
+def getAliceSignal(aliceObj,aliceSymbol,tFrame):
     instrument = aliceObj.get_instrument_by_symbol("NSE", aliceSymbol)
     from_datetime = datetime.now() - timedelta(days=30)
     to_datetime = datetime.now()

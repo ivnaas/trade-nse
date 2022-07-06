@@ -56,7 +56,8 @@ orderLogger.addHandler(order_handler)
 orderLogger.warning(f'**Initalize Short Orderlog**')
 
 # Config
-angelObject = None
+angelObj = None
+aliceObj = None
 #def exitPos(entryPrice):
     #to do
 
@@ -124,7 +125,7 @@ def getIndexPrice(symbol):
     #print(tokenInfo)
     spot_token = tokenInfo.iloc[0]['token']
     #print(spot_token)
-    ltpInfo = angelObject.ltpData('NSE', symbol, spot_token)
+    ltpInfo = angelObj.ltpData('NSE', symbol, spot_token)
     indexLtp = ltpInfo['data']['ltp']
     #print(indexLtp)
     return (spot_token, indexLtp)
@@ -151,7 +152,7 @@ def getHistoricalAPI(token,interval= 'FIVE_MINUTE'):
         "fromdate": from_date_format,
         "todate": to_date_format
         }
-        candle_json = angelObject.getCandleData(historicParam)
+        candle_json = angelObj.getCandleData(historicParam)
         print(candle_json)
         return candle_json
     except Exception as e:
@@ -179,7 +180,7 @@ def placeShortOrder(symbol,ATMStrike):
     print(ce_tokeninfo)
     ce_strike_token = ce_tokeninfo.iloc[0]['token']
     ce_strike_symbol = ce_tokeninfo.iloc[0]['symbol']
-    ltp = angelObject.ltpData("NFO",ce_strike_symbol,ce_strike_token)['data']['ltp']
+    ltp = angelObj.ltpData("NFO",ce_strike_symbol,ce_strike_token)['data']['ltp']
     print(f"{ce_strike_symbol} Price is: {ltp}")
     buy_order(ce_strike_symbol,symbol,qty)
 
@@ -190,7 +191,7 @@ def placeShortOrder(symbol,ATMStrike):
     print(ce_strike_symbol)
     ce_strike_token = ce_tokeninfo.iloc[0]['token']
     ce_strike_symbol = ce_tokeninfo.iloc[0]['symbol']
-    ltp = angelObject.ltpData("NFO", ce_strike_symbol, ce_strike_token)['data']['ltp']
+    ltp = angelObj.ltpData("NFO", ce_strike_symbol, ce_strike_token)['data']['ltp']
     print(f"{ce_strike_symbol} Price is: {ltp}")
     sell_order(ce_strike_symbol,symbol,qty)
 
@@ -212,8 +213,8 @@ def buy_order(token,symbol,qty):
             "triggerprice": "0"
             }
         print(orderparams)
-        #orderId=angelObject.placeOrder(orderparams)
-        #print("The order id is: {}".format(orderId))
+        orderId=angelObj.placeOrder(orderparams)
+        print("The order id is: {}".format(orderId))
     except Exception as e:
         print("Order placement failed: {}".format(e.message))
 
@@ -235,14 +236,14 @@ def sell_order(token,symbol,qty):
             "triggerprice": "0"
             }
         print(orderparams)
-        #orderId=angelObject.placeOrder(orderparams)
-        #print("The order id is: {}".format(orderId))
+        orderId=angelObj.placeOrder(orderparams)
+        print("The order id is: {}".format(orderId))
     except Exception as e:
         print("Order placement failed: {}".format(e.message))
 
 def exitPos(entryPrice):
 
-    alice_df15min = getAliceSignal(aliceSymbol, AL_15MIN)
+    alice_df15min = getAliceSignal(aliceObj,aliceSymbol, AL_15MIN)
     # print(alice_df15min)
     latest_candle = alice_df15min.iloc[-1]
 
@@ -260,7 +261,7 @@ def exitPos(entryPrice):
     # print(f"RSI Value - {AL_15MIN} is {rsi_15min}")
     # print(f"Close Value - {AL_15MIN} is {close_15min}")
 
-    alice_df5min = getAliceSignal(aliceSymbol, AL_5MIN)
+    alice_df5min = getAliceSignal(aliceObj,aliceSymbol, AL_5MIN)
     # print(alice_df5min)
     latest_candle = alice_df5min.iloc[-1]
 
@@ -331,8 +332,22 @@ def exitPos(entryPrice):
                 # error handling goes here
                 logger.exception(e)
 
+@retry(stop_max_attempt_number=3)
+def initAngel():
+    try:
+        angelObject = SmartConnect(api_key=api_key)
+        data = angelObject.generateSession(username,password)
+        refreshtoken = data['data']['refreshToken']
+        feedtoken = angelObject.getfeedToken()
+        userprofile = angelObject.getProfile(refreshtoken)
+        print (userprofile)
+    except Exception as e:
+        print(e)
+        time.sleep(30)
+    return angelObject
+
 def main():
-    global angelObject
+
     global username
     global password
     global api_key
@@ -343,6 +358,8 @@ def main():
     global hist
     global ATMdiff
     global marginDiff
+    global angelObj
+    global aliceObj
 
     if (idx == 'BNF'):
         symbol = 'BANKNIFTY'
@@ -357,16 +374,10 @@ def main():
     else:
         symbol = 'NONE'
 
-    angelObject = SmartConnect(api_key=api_key)
-    data = angelObject.generateSession(username,password)
+    angelObj = initAngel()
+    aliceObj = initAlice()
 
-    refreshToken = data['data']['refreshToken']
-    feedToken = angelObject.getfeedToken()
-
-    userProfile = angelObject.getProfile(refreshToken)
-    print (userProfile)
-
-    position = angelObject.position()
+    position = angelObj.position()
     print(position)
 
     tokenInfo, indexPrice  = getIndexPrice(symbol)
@@ -377,7 +388,7 @@ def main():
 
     while True:
 
-        alice_df15min = getAliceSignal(aliceSymbol, AL_15MIN)
+        alice_df15min = getAliceSignal(aliceObj,aliceSymbol, AL_15MIN)
         #print(alice_df15min)
         latest_candle = alice_df15min.iloc[-1]
 
@@ -395,7 +406,7 @@ def main():
         #print(f"RSI Value - {AL_15MIN} is {rsi_15min}")
         #print(f"Close Value - {AL_15MIN} is {close_15min}")
 
-        alice_df5min = getAliceSignal(aliceSymbol, AL_5MIN)
+        alice_df5min = getAliceSignal(aliceObj,aliceSymbol, AL_5MIN)
         #print(alice_df5min)
         latest_candle = alice_df5min.iloc[-1]
 
