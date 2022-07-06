@@ -283,7 +283,7 @@ def exitPos(entryPrice):
         exitPrice = ema21_5min + stoploss
         diff5min = close_5min - ema21_5min
         logger.info(
-            f"In Sell Position => ema20 = {str(round(ema21_5min, 2))} closeprice= {str(round(close_5min, 2))} exitPrice= {str(round(exitPrice, 2))} diff= {str(round(diff5min, 2))} RSI-15min= {(round(rsi_15min, 2))}")
+            f"In Short Position => ema20 = {str(round(ema21_5min, 2))} closeprice= {str(round(close_5min, 2))} exitPrice= {str(round(exitPrice, 2))} diff= {str(round(diff5min, 2))} RSI-15min= {(round(rsi_15min, 2))}")
         #time.sleep(30)
         # exit half quantity
         if ((close_5min < takeProfit) and (halfExit == 0)):
@@ -423,8 +423,8 @@ def main():
                 # print(shortOrder)
                 logger.info(shortOrder)
                 now = datetime.now()
-                logger.warning(f"Sell order executed at closeprice: {str(close_15min)} at {str(now)}")
-                orderLogger.warning(f"Sell order executed at closeprice: {str(close_15min)} at {str(now)}")
+                logger.warning(f"Short order executed at closeprice: {str(close_15min)} at {str(now)}")
+                orderLogger.warning(f"Short order executed at closeprice: {str(close_15min)} at {str(now)}")
                 exitPos(close_15min)
                 # send notification
                 # exit position

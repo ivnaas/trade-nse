@@ -212,8 +212,8 @@ def buy_order(token,symbol,qty):
             "triggerprice": "0"
             }
         print(orderparams)
-        #orderId=angelObject.placeOrder(orderparams)
-        #print("The order id is: {}".format(orderId))
+        orderId=angelObject.placeOrder(orderparams)
+        print("The order id is: {}".format(orderId))
     except Exception as e:
         print("Order placement failed: {}".format(e.message))
 
@@ -237,7 +237,6 @@ def sell_order(token,symbol,qty):
         print(orderparams)
         orderId=angelObject.placeOrder(orderparams)
         print("The order id is: {}".format(orderId))
-        logger.info(f"The order id is: {.format(orderId)}")
     except Exception as e:
         print("Order placement failed: {}".format(e.message))
 
@@ -284,7 +283,7 @@ def exitPos(entryPrice):
         exitPrice = ema21_5min + stoploss
         diff5min = close_5min - ema21_5min
         logger.info(
-            f"In Sell Position => ema20 = {str(round(ema21_5min, 2))} closeprice= {str(round(close_5min, 2))} exitPrice= {str(round(exitPrice, 2))} diff= {str(round(diff5min, 2))} RSI-15min= {(round(rsi_15min, 2))}")
+            f"In Long Position => ema20 = {str(round(ema21_5min, 2))} closeprice= {str(round(close_5min, 2))} exitPrice= {str(round(exitPrice, 2))} diff= {str(round(diff5min, 2))} RSI-15min= {(round(rsi_15min, 2))}")
         #time.sleep(30)
         # exit half quantity
         if ((close_5min > takeProfit) and (halfExit == 0)):
@@ -416,7 +415,7 @@ def main():
 
         diff5min = close_5min - ema21_5min
         logger.info(
-            f"Short side taking Position => ClosePrice = {str(round(close_15min, 2))}  RSI-15min={str(round(rsi_15min, 2))} Histogram=  {str(round(macdDiff_15min, 2))} diff5min={str(round(diff5min, 2))}")
+            f"Long side taking Position => ClosePrice = {str(round(close_15min, 2))}  RSI-15min={str(round(rsi_15min, 2))} Histogram=  {str(round(macdDiff_15min, 2))} diff5min={str(round(diff5min, 2))}")
         time.sleep(30)
         if ((macdDiff_15min > hist) and (diff5min > -stoploss) and (rsi_15min < 60)):
             try:
@@ -424,8 +423,8 @@ def main():
                 # print(shortOrder)
                 logger.info(shortOrder)
                 now = datetime.now()
-                logger.warning(f"Sell order executed at closeprice: {str(close_15min)} at {str(now)}")
-                orderLogger.warning(f"Sell order executed at closeprice: {str(close_15min)} at {str(now)}")
+                logger.warning(f"Long order executed at closeprice: {str(close_15min)} at {str(now)}")
+                orderLogger.warning(f"Long order executed at closeprice: {str(close_15min)} at {str(now)}")
                 exitPos(close_15min)
                 # send notification
                 # exit position
