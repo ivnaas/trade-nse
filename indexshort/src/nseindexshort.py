@@ -290,8 +290,8 @@ def exitPos(entryPrice):
             logger.info("postion Partail Exit")
             orderLogger.warning(f"position Partial Exit")
             try:
-                # shortOrder = placeShortOrder(symbol,ATMStrike)
-                # print(shortOrder)
+                shortOrder = placeShortOrder(symbol,ATMStrike)
+                print(shortOrder)
                 logger.info(shortOrder)
                 profit = (round(exitprice, 2) - round(entryprice, 2) * (qty_2))
                 now = datetime.now()
@@ -419,15 +419,15 @@ def main():
         time.sleep(30)
         if ((macdDiff_15min < hist) and (diff5min < -stoploss) and (rsi_15min > 40)):
             try:
-                # shortOrder = placeShortOrder(symbol,ATMStrike)
-                # print(shortOrder)
+                shortOrder = placeShortOrder(symbol,ATMStrike)
+                print(shortOrder)
                 logger.info(shortOrder)
                 now = datetime.now()
                 logger.warning(f"Short order executed at closeprice: {str(close_15min)} at {str(now)}")
                 orderLogger.warning(f"Short order executed at closeprice: {str(close_15min)} at {str(now)}")
-                exitPos(close_15min)
                 # send notification
                 # exit position
+                exitPos(close_15min)
                 break
             except Exception as e:
                 # error handling goes here

@@ -4,13 +4,13 @@ from alice_blue import *
 import dateutil.parser
 from datetime import datetime, timedelta
 import pandas as pd
+import time
+from retrying import retry
 
 #logging.basicConfig(level=logging.DEBUG)  # Optional for getting debug messages.
 
 # Config
 idx = os.environ.get('idx') #BNF, NF
-#country = 'india'
-#product_type = 'index'
 alice_user_id = os.environ.get('alice_user_id')
 alice_password = os.environ.get('alice_password')
 alice_two_FA = os.environ.get('alice_two_FA')
@@ -34,15 +34,19 @@ def get_historical(instrument, from_datetime, to_datetime, interval, indices=Fal
         records.append(record)
     return records
 
-def getAliceSignal(aliceSymbol,tFrame):
-    access_token = AliceBlue.login_and_get_access_token(username=alice_user_id,
-                                                        password=alice_password,
-                                                        twoFA=alice_two_FA,
-                                                        api_secret=alice_api_secret,
-                                                        app_id=alice_app_id)
-    alice = AliceBlue(username=alice_user_id, password=alice_password,
+retry(stop_max_attempt_number=3)
+def alicelogin():
+    try:
+        access_token = AliceBlue.login_and_get_access_token(username=user_id,
+                                                        password=password,
+                                                        twoFA=two_FA,
+                                                        api_secret=api_secret,
+                                                        app_id=app_id)
+        alice = AliceBlue(username=user_id, password=password,
                       access_token=access_token)
-
+    except Exception as e:
+        print(e)
+        time.sleep(30)
     #print(alice.get_balance()) # get balance / margin limits
     #print(alice.get_profile()) # get profile
     #print(alice.get_daywise_positions()) # get daywise positions
@@ -50,7 +54,11 @@ def getAliceSignal(aliceSymbol,tFrame):
     #print(alice.get_holding_positions()) # get holding positions
     #instrument = alice.get_instrument_by_symbol("NSE", "Nifty 50")
     #instrument = alice.get_instrument_by_symbol("NSE", "Nifty Bank")
-    instrument = alice.get_instrument_by_symbol("NSE", aliceSymbol)
+    return alice
+
+def getAliceSignal(aliceSymbol,tFrame):
+    aliceObj = alicelogin()
+    instrument = aliceObj.get_instrument_by_symbol("NSE", aliceSymbol)
     from_datetime = datetime.now() - timedelta(days=30)
     to_datetime = datetime.now()
     interval = tFrame   # ["DAY", "1_HR", "3_HR", "1_MIN", "5_MIN", "15_MIN", "60_MIN"]
